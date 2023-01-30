@@ -1,0 +1,46 @@
+Reflection question 1:
+In most programming language typing is strict, if we want all items in the inventory to share
+functionality they all need to look the same. In JS we can check if a property exist by:
+if (sallad.lactose) // false if property doesn't exists.
+Also js arrays can have different types of objects in them.
+
+Reflection question 2:
+Inherited functions are not printes as they are not enumerable. 
+They don't belong to the object directly, only its inheritance chain.
+for...in will also print inherited enumerable properties. Example of that?
+
+Reflection question 3:
+
+Salad: [class Salad]
+typeof Salad: function
+Salad.prototype: { getPrice: [Function (anonymous)], count: [Function (anonymous)] }
+typeof Salad.prototype: object
+Salad.prototype.prototype: undefined
+typeof Salad.prototype.prototype: undefined
+
+typeof myCaesarSalad: object
+myCaesarSalad.prototype: undefined
+typeof myCaesarSalad.prototype: undefined
+
+Reflection question 4:
+The static property instanceCounter is stored in the Salad class/object.
+They are not accesible to instances of that class. 
+"static will add the property to the constructor function object."
+
+Reflection question 5:
+Yes, in the constructor of Salad we can change:
+
+  this.id = "salad_" + Salad.instanceCounter++;
+
+to:
+
+  Object.defineProperty(this, "id", {
+			value: "salad_" + Salad.instanceCounter++,
+			writable: false
+	});
+
+Reflection question 6:
+Yes, # means private. Define:
+#id;
+and use
+this.#id = "salad_" + Salad.instanceCounter++;

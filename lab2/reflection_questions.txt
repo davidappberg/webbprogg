@@ -1,0 +1,8 @@
+1. Yes, a functional component can't be instantiated with new.
+
+2. render runs when state or props change. If it is dependent on other data then it won't re-render when the data changes.
+
+3. You can with the useEffect hook. But it's hard to determine when props.inventory has changed.
+If we can have a prop that tells when the inventory changes we can update then.
+
+4.
