@@ -1,14 +1,4 @@
 const ViewOrder = ({ order, remove, updateSalad }) => {
-	console.log("View order: basket", order);
-	if (!order) {
-		return <></>;
-	}
-	// let sallads = [];
-	// useEffect(() => {
-	// 	console.log("RE-RENDER VIEW ORDER");
-	// 	// sallads = basket.getBasket();
-	// }, [basket.length]);
-
 	return (
 		<div className="container col-12">
 			<div className="row h-200 p-5 bg-light border rounded-3">

@@ -10,8 +10,8 @@ class Basket {
 		this.basket.push(salad);
 		return this;
 	}
-	removeSalad(salad) {
-		this.basket = this.basket.filter((s) => s.uuid !== salad.uuid);
+	removeSalad(id) {
+		this.basket = this.basket.filter((s) => s.id !== id);
 		return this;
 	}
 	getBasketPrice() {

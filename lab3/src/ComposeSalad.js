@@ -1,5 +1,10 @@
 import { useEffect, useState } from "react";
-import Salad from "./Salad";
+// import Salad from "./Salad";
+
+const randomNumber = (max, except) => {
+	let num = Math.floor(Math.random() * max);
+	return num === except ? randomNumber(max, except) : num;
+};
 
 const ComposeSalad = (props) => {
 	const [foundations, setFoundations] = useState([]);
@@ -45,19 +50,45 @@ const ComposeSalad = (props) => {
 		setDressings(dressingProp);
 	}, [props.inventory]);
 
+	useEffect(() => {
+		if (props.updatingSalad) {
+			const { ingredients } = props.updatingSalad;
+			Object.entries(ingredients).forEach(([key, value]) => {
+				if (value.foundation) chooseFoundation(key);
+				else if (value.protein) chooseProtein(key);
+				else if (value.dressing) chooseDressing(key);
+				else {
+					if (!value.extra) {
+						console.log("What is this ingredient???");
+						return;
+					}
+					chooseExtras((prev) => [...prev, key]);
+				}
+			});
+		}
+	}, [props.updatingSalad]);
+
 	const handleSubmit = (e) => {
 		e.preventDefault();
 		console.log("submitting");
 
-		let salad = new Salad();
-		salad
-			.add(chosenFoundation, props.inventory[chosenFoundation])
-			.add(chosenProtein, props.inventory[chosenProtein])
-			.add(chosenDressing, props.inventory[chosenDressing]);
+		const ingredients = {};
+		ingredients[chosenFoundation] = props.inventory[chosenFoundation];
+		ingredients[chosenProtein] = props.inventory[chosenProtein];
+		ingredients[chosenDressing] = props.inventory[chosenDressing];
+		chosenExtras.forEach(
+			(extra) => (ingredients[extra] = props.inventory[extra])
+		);
+		props.addToBasket(ingredients);
+		// let salad = new Salad();
+		// salad
+		// 	.add(chosenFoundation, props.inventory[chosenFoundation])
+		// 	.add(chosenProtein, props.inventory[chosenProtein])
+		// 	.add(chosenDressing, props.inventory[chosenDressing]);
 
-		chosenExtras.forEach((extra) => salad.add(extra, props.inventory[extra]));
+		// chosenExtras.forEach((extra) => salad.add(extra, props.inventory[extra]));
 
-		props.addToBasket(salad);
+		// props.addToBasket(salad);
 		chooseFoundation("");
 		chooseProtein("");
 		chooseExtras([]);
@@ -74,26 +105,21 @@ const ComposeSalad = (props) => {
 
 	const makeRandom = (e) => {
 		e.preventDefault();
-		chooseFoundation(
-			foundations[Math.floor(Math.random() * foundations.length)]
-		);
-		chooseProtein(proteins[Math.floor(Math.random() * proteins.length)]);
-		chooseExtras([
-			extras[Math.floor(Math.random() * extras.length)],
-			extras[Math.floor(Math.random() * extras.length)]
-		]);
-		chooseDressing(dressings[Math.floor(Math.random() * dressings.length)]);
+		chooseFoundation(foundations[randomNumber(foundations.length, -1)]);
+		chooseProtein(proteins[randomNumber(proteins.length, -1)]);
+		const extra1 = randomNumber(extras.length, -1);
+		chooseExtras([extras[extra1], extras[randomNumber(extras.length, extra1)]]);
+		chooseDressing(dressings[randomNumber(dressings.length, -1)]);
 	};
 
+	const title = props.updatingSalad
+		? "Ändra innehållet i din sallad"
+		: "Välj innehållet i din sallad";
+	const buttonText = props.updatingSalad ? "Uppdatera" : "Lägg till";
 	return (
 		<div className="container col-12">
 			<div className="row h-200 p-5 bg-light border rounded-3">
-				<h2>Välj innehållet i din sallad</h2>
-				{/* {extras.map((name) => (
-					<div key={name} className="col-4">
-						{name}
-					</div>
-				))} */}
+				<h2>{title}</h2>
 				<form onSubmit={(e) => handleSubmit(e)}>
 					<Select
 						label="Foundation"
@@ -133,7 +159,7 @@ const ComposeSalad = (props) => {
 						multipleChoice={false}
 					/>
 					<button type="submit" className="btn btn-primary">
-						Lägg till
+						{buttonText}
 					</button>
 					<span style={{ padding: 50 }} />
 					<button onClick={(e) => makeCaesar(e)} className="btn btn-primary">

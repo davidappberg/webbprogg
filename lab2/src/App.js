@@ -10,11 +10,12 @@ import ViewOrder from "./ViewOrder";
 
 function App() {
 	const [basket, setBasket] = useState([]);
+	const [updatingSalad, setUpdatingSalad] = useState({});
 
-	// const basketObj = new Basket();
+	const [basketObj, setBasketObj] = useState(new Basket());
 
 	const updateBasket = (salad) => {
-		// basketObj.addSalad(salad);
+		basketObj.addSalad(salad);
 		let newBasket = [...basket];
 		newBasket.push(salad);
 		setBasket(newBasket);
@@ -24,15 +25,27 @@ function App() {
 		newBasket = newBasket.filter((s) => s.id !== id);
 		setBasket(newBasket);
 	};
+
+	const updateSalad = (id) => {
+		const salad = basket.find((s) => s.id === id);
+
+		console.log("updating");
+	};
 	return (
 		<div className="container py-4">
 			<header className="pb-3 mb-4 border-bottom">
 				<span className="fs-4">Min egen salladsbar</span>
 			</header>
-			<ViewOrder order={basket} remove={(id) => removeSalad(id)} />
+			<ViewOrder
+				order={basket}
+				remove={(id) => removeSalad(id)}
+				updateSalad={(salad) => updateSalad(salad)}
+			/>
 			<ComposeSalad
 				inventory={inventory}
 				addToBasket={(salad) => updateBasket(salad)}
+				// updatingSalad={updatingSalad}
+				// updateSalad={(salad) => updateSalad(salad)}
 			/>
 
 			<footer className="pt-3 mt-4 text-muted border-top">
