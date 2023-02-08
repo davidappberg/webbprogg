@@ -1,3 +1,5 @@
 1. Add the image in the public folder and change index.html
 
 2. It is still highlighted...
+
+3. If you don't begin with a / then it appends to the current path

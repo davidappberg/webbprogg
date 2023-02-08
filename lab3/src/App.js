@@ -7,6 +7,7 @@ import NavBar from "./components/NavBar";
 import Header from "./components/Header";
 import Welcome from "./components/Welcome";
 import FourOhFour from "./components/FourOhFour";
+import ViewIngredient from "./components/ViewIngredient";
 import ViewOrder from "./ViewOrder";
 import Salad from "./Salad";
 
@@ -41,7 +42,7 @@ function App() {
 		<Routes>
 			<Route path="/" element={<Welcome />} />
 			<Route
-				path="compose-sallad"
+				path="/compose-sallad"
 				element={
 					<ComposeSalad
 						inventory={inventory}
@@ -52,7 +53,7 @@ function App() {
 				}
 			/>
 			<Route
-				path="view-order"
+				path="/view-order"
 				element={
 					<ViewOrder
 						order={basket}
@@ -60,6 +61,10 @@ function App() {
 						updateSalad={(salad) => updateSalad(salad)}
 					/>
 				}
+			/>
+			<Route
+				path="/view-ingredient/:name"
+				element={<ViewIngredient inventory={inventory} />}
 			/>
 			<Route path="*" element={<FourOhFour />} />
 		</Routes>
@@ -78,3 +83,13 @@ function App() {
 }
 
 export default App;
+
+/**
+ * Opt: 7.5 (A) räknas ej
+ * Opt4learn: 7.5 (A)
+ * Statstok: 7.5 (G2)
+ * Tidsserie: 7.5 (A)
+ * MC: 7.5 (A)
+ * Finansvärdering: 7.5 (A)
+ *
+ */

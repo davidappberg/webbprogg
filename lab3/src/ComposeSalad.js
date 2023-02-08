@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
 // import Salad from "./Salad";
 
 const randomNumber = (max, except) => {
@@ -17,12 +18,15 @@ const ComposeSalad = (props) => {
 	const [chosenExtras, chooseExtras] = useState([]);
 	const [chosenDressing, chooseDressing] = useState();
 
+	const [showExtraError, setExtraError] = useState(false);
+
+	const navigate = useNavigate();
+
 	useEffect(() => {
 		let foundationProp = [];
 		let extrasProp = [];
 		let proteinsProp = [];
 		let dressingProp = [];
-		console.log("--- MOUNTING COMPOSE SALAD ---");
 		Object.keys(props.inventory).forEach((name) => {
 			// console.log(name)
 			if (props.inventory[name].foundation) {
@@ -68,8 +72,28 @@ const ComposeSalad = (props) => {
 		}
 	}, [props.updatingSalad]);
 
+	useEffect(() => {
+		// const extrasInvalid = chosenExtras.length < 3 || chosenExtras.length > 9;
+		// setExtraError(extrasInvalid);
+		if (showExtraError) {
+			const extrasInvalid = chosenExtras.length < 3 || chosenExtras.length > 9;
+			!extrasInvalid && setExtraError(false);
+		}
+		// if (chosenExtras.length > 9) {
+		// 	setExtraError(true)
+		// }
+		// who do I get a warning if showExtraError is not in the dependency array?
+	}, [chosenExtras, showExtraError]);
+
 	const handleSubmit = (e) => {
 		e.preventDefault();
+		e.target.classList.add("was-validated");
+		const extrasInvalid = chosenExtras.length < 3 || chosenExtras.length > 9;
+		setExtraError(extrasInvalid);
+		if (!e.target.checkValidity() || extrasInvalid) {
+			console.log("Form is invalid!");
+			return;
+		}
 		console.log("submitting");
 
 		const ingredients = {};
@@ -93,6 +117,7 @@ const ComposeSalad = (props) => {
 		chooseProtein("");
 		chooseExtras([]);
 		chooseDressing("");
+		navigate("/view-order");
 	};
 
 	const makeCaesar = (e) => {
@@ -119,8 +144,8 @@ const ComposeSalad = (props) => {
 	return (
 		<div className="container col-12">
 			<div className="row h-200 p-5 bg-light border rounded-3">
-				<h2>{title}</h2>
-				<form onSubmit={(e) => handleSubmit(e)}>
+				<h2 className="mb-4">{title}</h2>
+				<form onSubmit={(e) => handleSubmit(e)} noValidate>
 					<Select
 						label="Foundation"
 						options={foundations}
@@ -140,17 +165,24 @@ const ComposeSalad = (props) => {
 						options={extras}
 						chosenValue={chosenExtras}
 						onChange={(val) => {
-							console.log("choosing val: ", val);
-							let newExtras = [...chosenExtras];
-							if (chosenExtras.includes(val)) {
-								newExtras = chosenExtras.filter((name) => name !== val);
-							} else {
-								newExtras.push(val);
-							}
-							chooseExtras(newExtras);
+							chooseExtras((prev) => {
+								if (prev.includes(val)) {
+									return prev.filter((name) => name !== val);
+								}
+								return [...prev, val];
+							});
+							// let newExtras = [...chosenExtras];
+							// if (chosenExtras.includes(val)) {
+							// 	newExtras = chosenExtras.filter((name) => name !== val);
+							// } else {
+							// 	newExtras.push(val);
+							// }
+							// chooseExtras(newExtras);
 						}}
 						multipleChoice={true}
+						showExtraError={showExtraError}
 					/>
+
 					<Select
 						label="Dressing"
 						options={dressings}
@@ -172,8 +204,13 @@ const ComposeSalad = (props) => {
 				</form>
 			</div>
 
-			<h2>Din sallad är nu:</h2>
-			<p>Foundation: {chosenFoundation}</p>
+			{/* <h2>Din sallad är nu:</h2>
+			<p>
+				Foundation:{" "}
+				<Link to={"/view-ingredient/" + chosenFoundation}>
+					{chosenFoundation}
+				</Link>
+			</p>
 			<p>Protein: {chosenProtein}</p>
 			<p>
 				Extras:{" "}
@@ -181,13 +218,20 @@ const ComposeSalad = (props) => {
 					<span key={e}>{e} </span>
 				))}
 			</p>
-			<p>Dressing: {chosenDressing}</p>
+			<p>Dressing: {chosenDressing}</p> */}
 		</div>
 	);
 };
 
-const Select = ({ label, options, chosenValue, onChange, multipleChoice }) => {
+const Select = (props) => {
+	const { label, options, chosenValue, onChange, multipleChoice } = props;
+	const preOnChange = (e, value) => {
+		// e.target.parentElement.classList.add("was-validated");
+		onChange(value);
+	};
+
 	if (multipleChoice) {
+		const { showExtraError } = props;
 		return (
 			<div className="mb-3">
 				<h4>Extras</h4>
@@ -195,18 +239,31 @@ const Select = ({ label, options, chosenValue, onChange, multipleChoice }) => {
 					<div key={name} className="form-check form-check-inline">
 						<input
 							className="form-check-input"
+							style={{ borderColor: "rgba(0,0,0,0.25" }}
 							type="checkbox"
 							id={name}
-							// value={name}
 							name={name}
 							checked={chosenValue.includes(name)}
-							onChange={(e) => onChange(e.target.name)}
+							onChange={(e) => preOnChange(e, e.target.name)}
 						/>
-						<label className="form-check-label" htmlFor={name}>
-							{name}
+						<label className="form-check-label">
+							<Link to={"/view-ingredient/" + name} className="link-dark">
+								{name}
+							</Link>
 						</label>
+						{/* <label className="form-check-label" htmlFor={name}>
+							{name + " "}
+						</label>
+						<Link to={"/view-ingredient/" + name} className="link-secondary">
+							( i )
+						</Link> */}
 					</div>
 				))}
+				{showExtraError && (
+					<div className="invalid-feedback" style={{ display: "block" }}>
+						Välj mellan 3 - 9 stycken
+					</div>
+				)}
 			</div>
 		);
 	}
@@ -219,21 +276,38 @@ const Select = ({ label, options, chosenValue, onChange, multipleChoice }) => {
 				</label>
 			</div> */}
 			<h4>{label}</h4>
-			<select
-				className="form-control"
-				value={chosenValue}
-				defaultValue=""
-				onChange={(e) => onChange(e.target.value)}
-			>
-				<option value="" hidden disabled>
-					Välj...
-				</option>
-				{options.map((name) => (
-					<option key={name} value={name}>
-						{name}
-					</option>
-				))}
-			</select>
+			<div className="row">
+				<div className="col-10">
+					<select
+						required
+						className="form-control"
+						value={chosenValue}
+						defaultValue=""
+						onChange={(e) => preOnChange(e, e.target.value)}
+					>
+						<option value="" hidden disabled>
+							Välj...
+						</option>
+						{options.map((name) => (
+							<option key={name} value={name}>
+								{name}
+							</option>
+						))}
+					</select>
+					<div className="invalid-feedback">Obligatorisk</div>
+					{/* <div className="valid-feedback">Ok</div> */}
+				</div>
+				<div className="col-2">
+					{chosenValue && (
+						<Link
+							to={"/view-ingredient/" + chosenValue}
+							className="align-middle link-secondary"
+						>
+							Info
+						</Link>
+					)}
+				</div>
+			</div>
 		</div>
 	);
 };
