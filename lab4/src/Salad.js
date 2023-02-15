@@ -8,19 +8,31 @@ class Salad {
 			this.ingredients = { ...salad.ingredients };
 		} else if (typeof salad === "string") {
 			// JSON
-			this.ingredients = { ...JSON.parse(salad).ingredients };
+			this.ingredients = JSON.parse(salad).ingredients;
 		} else if (typeof salad === "object") {
-			this.ingredients = salad;
+			if (salad.ingredients && salad.id) {
+				this.ingredients = salad.ingredients;
+				this.id = salad.id;
+			} else {
+				this.ingredients = salad;
+			}
 		} else {
 			this.ingredients = {};
 		}
+		if (!this.id) {
+			this.id = uuidv4();
+		}
 
-		this.id = uuidv4();
 		// Object.defineProperty(this, "id", {
 		// 	value: "salad_" + Salad.instanceCounter++,
 		// 	writable: false
 		// });
 	}
+
+	static parseArray(saladsJSON) {
+		return JSON.parse(saladsJSON).map((salad) => new Salad(salad));
+	}
+
 	add(name, properties) {
 		this.ingredients[name] = properties;
 		return this;

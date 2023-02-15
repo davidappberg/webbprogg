@@ -67,8 +67,8 @@ function App() {
 	const [loading, setLoading] = useState(true);
 	const [siteIsDown, setSiteIsDown] = useState(false);
 	const [inventory, setInventory] = useState({});
-	const [updatingSalad, setUpdatingSalad] = useState();
-	const [basket, setBasket] = useState([]);
+	// const [updatingSalad, setUpdatingSalad] = useState();
+	// const [basket, setBasket] = useState([]);
 
 	const fetchValuesForKey = useCallback(async (typeUrl, key) => {
 		let url = typeUrl + key;
@@ -92,8 +92,8 @@ function App() {
 				throw new Error(`${url} returned status ${resp.status}`);
 			}
 			const keys = await resp.json();
-			const promises = keys.map(async (key) => {
-				return await fetchValuesForKey(url, key);
+			const promises = keys.map((key) => {
+				return fetchValuesForKey(url, key);
 			});
 			// console.log(type, "  promises: ", promises);
 			return Promise.allSettled(promises);
@@ -103,10 +103,12 @@ function App() {
 
 	useEffect(() => {
 		setLoading(true);
-
-		const inventoryPromises = types.map(async (type) => {
+		const inventoryPromises = types.map((type) => {
 			return fetchKeys(baseUrl, type);
 		});
+		// const inventoryPromises = types.map((type) => {
+		// 	return fetchKeys(baseUrl, type);
+		// });
 		// console.log("inventoryPromises: ", inventoryPromises);
 		Promise.all(inventoryPromises)
 			.then((result) => {
@@ -118,10 +120,13 @@ function App() {
 						{}
 					);
 				// console.log("inventory final: ", inventory);
-				console.log(
-					"local and server equal: ",
-					isDeepEqual(localInventory, inventory)
-				);
+				// console.log(
+				// 	"local and server equal: ",
+				// 	isDeepEqual(localInventory, inventory)
+				// );
+				if (!isDeepEqual(localInventory, inventory)) {
+					console.log("local and server inventory is not equal");
+				}
 				setInventory(inventory);
 				setTimeout(() => {
 					setLoading(false);
@@ -136,61 +141,39 @@ function App() {
 			});
 	}, [fetchKeys]);
 
-	const updateBasket = (ingredients) => {
-		if (updatingSalad) {
-			// setBasket(prev => {
-			// 	const salad = prev.find(updatingSalad);
-
-			// })
-			// tveksam till detta, states ska ju vara immutable.
-			updatingSalad.ingredients = ingredients; // denna ändrar salladsobjektet, men triggar inte render.
-			setUpdatingSalad(null); // denna triggar render.
-		} else {
-			const salad = new Salad(ingredients);
-			setBasket((prev) => [...prev, salad]);
-		}
-	};
-	const removeSalad = (id) => {
-		setBasket((prev) => prev.filter((s) => s.id !== id));
-	};
-
-	const updateSalad = (id) => {
-		const salad = basket.find((s) => s.id === id);
-		setUpdatingSalad(salad);
-	};
-
-	const Routing = () => (
-		<Routes>
-			<Route element={<PageOutline />}>
-				<Route path="/" element={<Welcome />} />
-				<Route
-					path="/compose-sallad"
-					element={
-						<ComposeSalad
-							inventory={inventory}
-							addToBasket={(ingredients) => updateBasket(ingredients)}
-							updatingSalad={updatingSalad}
-						/>
-					}
-				/>
-				<Route
-					path="/view-order"
-					element={
-						<ViewOrder
-							order={basket}
-							remove={(id) => removeSalad(id)}
-							updateSalad={(salad) => updateSalad(salad)}
-						/>
-					}
-				/>
-				<Route
-					path="/view-ingredient/:name"
-					element={<ViewIngredient inventory={inventory} />}
-				/>
-				<Route path="*" element={<FourOhFour />} />
-			</Route>
-		</Routes>
-	);
+	// const Routing = () => ( // using this causes components to remount on every App-render
+	// 	<Routes>
+	// 		<Route element={<PageOutline />}>
+	// 			<Route path="/" element={<Welcome />} />
+	// 			<Route
+	// 				path="/compose-sallad"
+	// 				element={
+	// 					<ComposeSalad
+	// 						inventory={inventory}
+	// 						addToBasket={(ingredients) => updateBasket(ingredients)}
+	// 						updatingSalad={updatingSalad}
+	// 					/>
+	// 				}
+	// 			/>
+	// 			<Route
+	// 				path="/view-order"
+	// 				element={
+	// 					<ViewOrder
+	// 						order={basket}
+	// 						remove={(id) => removeSalad(id)}
+	// 						updateSalad={(salad) => updateSalad(salad)}
+	// 						clearBasket={() => clearBasket()}
+	// 					/>
+	// 				}
+	// 			/>
+	// 			<Route
+	// 				path="/view-ingredient/:name"
+	// 				element={<ViewIngredient inventory={inventory} />}
+	// 			/>
+	// 			<Route path="*" element={<FourOhFour />} />
+	// 		</Route>
+	// 	</Routes>
+	// );
 
 	if (siteIsDown) {
 		return (
@@ -216,7 +199,7 @@ function App() {
 					<Loading />
 				</PageOutline>
 			) : (
-				<Routing />
+				<Main inventory={inventory} />
 			)}
 			<footer className="pt-3 mt-4 text-muted border-top">
 				EDAF90 - webprogrammering
@@ -226,6 +209,71 @@ function App() {
 }
 
 export default App;
+
+const Main = ({ inventory }) => {
+	const [updatingSalad, setUpdatingSalad] = useState();
+	const [basket, setBasket] = useState([]);
+
+	const updateBasket = (ingredients) => {
+		if (updatingSalad) {
+			// setBasket(prev => {
+			// 	const salad = prev.find(updatingSalad);
+
+			// })
+			// tveksam till detta, states ska ju vara immutable.
+			updatingSalad.ingredients = ingredients; // denna ändrar salladsobjektet, men triggar inte render.
+			setUpdatingSalad(null); // denna triggar render.
+		} else {
+			const salad = new Salad(ingredients);
+			setBasket((prev) => [...prev, salad]);
+		}
+	};
+	const clearBasket = () => {
+		setBasket([]);
+	};
+	const removeSalad = (id) => {
+		setBasket((prev) => prev.filter((s) => s.id !== id));
+	};
+
+	const updateSalad = (id) => {
+		const salad = basket.find((s) => s.id === id);
+		setUpdatingSalad(salad);
+	};
+
+	return (
+		<Routes>
+			<Route element={<PageOutline />}>
+				<Route path="/" element={<Welcome />} />
+				<Route
+					path="/compose-sallad"
+					element={
+						<ComposeSalad
+							inventory={inventory}
+							addToBasket={(ingredients) => updateBasket(ingredients)}
+							updatingSalad={updatingSalad}
+						/>
+					}
+				/>
+				<Route
+					path="/view-order"
+					element={
+						<ViewOrder
+							order={basket}
+							remove={(id) => removeSalad(id)}
+							updateSalad={(salad) => updateSalad(salad)}
+							clearBasket={() => clearBasket()}
+						/>
+					}
+				/>
+				<Route
+					path="/view-ingredient/:name"
+					element={<ViewIngredient inventory={inventory} />}
+				/>
+				<Route path="*" element={<FourOhFour />} />
+			</Route>
+		</Routes>
+	);
+};
 
 /**
  * Opt: 7.5 (A) räknas ej

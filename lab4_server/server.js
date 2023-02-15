@@ -34,6 +34,8 @@ const { StatusCodes } = require('http-status-codes');
     }
   }
 
+  let prevOrders = [];
+
   function handleOrder(req, res, next) {
     try { 
     const order = {
@@ -44,7 +46,9 @@ const { StatusCodes } = require('http-status-codes');
       order: req.body
     };
     order.price = req.body.reduce(((acc, salad) => getSaladPrice(salad) + acc), 0);
+    prevOrders.push(order);
     res.json(order);
+    // prevOrders.push()
     } catch (e) {
       res.set('Content-Type', 'text/plain');
       res.status(StatusCodes.NOT_FOUND).send(e);
@@ -62,6 +66,27 @@ const { StatusCodes } = require('http-status-codes');
     res.json(list);
   }
 
+  function getOrder(req, res) {
+    // let list = prevOrders.map(o => ({o, price: getSaladPrice([o])}))
+    prevOrders.forEach(o => {
+      console.log("o: ", o)
+    })
+    let list = prevOrders.map(o => (
+      {...o,
+      salads: o.order.map(salad => ({ingredients: salad, price: getSaladPrice(salad)}) )
+    }))
+    res.json(list)
+  }
+  function addOrderListener(server) {
+    server.get('/view-orders', (req, res) => getOrder(req, res))
+    server.get('/view-orders/', (req, res) => getOrder(req, res))
+  }
+  addOrderListener(server)
+  server.get("/view-orders/", (req, res, next) =>
+  res.json({try: req.hostname + ":" + port + req.originalUrl + "/view-orders"})
+    // res.json(prevOrders)
+  );
+
   function addInventoryListener(server, kind) {
     server.get('/' + kind + 's', (req, res, next) => getList(req, res, next, kind));
     server.get('/' + kind + 's/', (req, res, next) => getList(req, res, next, kind));
@@ -72,10 +97,12 @@ const { StatusCodes } = require('http-status-codes');
   addInventoryListener(server, 'protein');
   addInventoryListener(server, 'extra');
   addInventoryListener(server, 'dressing');
+
   server.post('/orders/', handleOrder);
   server.get("/", (req, res, next) =>
     res.json({try: req.hostname + ":" + port + req.originalUrl + "foundations"})
   );
+ 
 
   const inventory = {
     Sallad: {price: 10, foundation: true, vegan: true},

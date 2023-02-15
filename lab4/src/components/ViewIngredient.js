@@ -17,15 +17,13 @@ const ViewIngredient = ({ inventory }) => {
 		return <FourOhFour title="404 Ingredienten hittades inte" />;
 	}
 	return (
-		<div className="container col-12">
-			<div className="row h-200 p-5 bg-light border rounded-3">
-				<h2>{name}</h2>
-				<p>Pris: {info.price}</p>
-				{Object.keys(info).map((property) =>
-					names[property] ? <p key={property}>{names[property]}</p> : null
-				)}
-			</div>
-		</div>
+		<>
+			<h2>{name}</h2>
+			<p>Pris: {info.price}</p>
+			{Object.keys(info).map((property) =>
+				names[property] ? <p key={property}>{names[property]}</p> : null
+			)}
+		</>
 	);
 };
 export default ViewIngredient;
